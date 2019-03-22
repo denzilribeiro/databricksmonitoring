@@ -1,2 +1,2 @@
-# databricksmonitoring
+# Databricks monitoring
 Monitor Databricks
