@@ -1,0 +1,30 @@
+
+{
+  "run_name": "EmptyNotebookJob",
+  "new_cluster": {
+    "spark_version": "5.2.x-scala2.11"
+     },
+    "driver_node_type_id": "Standard_DS3_v2",
+    "node_type_id": "Standard_DS3_v2",
+    "autoscale" : {
+            "min_workers": 2,
+            "max_workers": 4
+                },
+   "init_scripts": [
+    {
+      "dbfs": {
+        "destination": "dbfs:/appinsights/appinsights_logging_init.sh"
+      },
+    {
+      "dbfs": {
+        "destination": "dbfs:/loganalytics/loganalytics_linuxagent_init.sh"
+      }
+    }
+   }
+  ],
+   "notebook_task": {
+   "notebook_path": "/Users/shared/samplejobnotebook"
+  }
+
+}
+
