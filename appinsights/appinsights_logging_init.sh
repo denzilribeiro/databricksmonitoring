@@ -11,7 +11,8 @@ echo "BEGIN: Setting Environment variables"
 sudo echo APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATION_KEY >> /etc/environment
 
 echo "BEGIN: Updating Executor log4j properties file"
-sed -i 's/log4j.rootCategory=INFO, console/log4j.rootCategory=INFO, console, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
+sed -i 's/log4j.rootCategory=.*/&, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
+#sed -i 's/log4j.rootCategory=INFO, console/log4j.rootCategory=INFO, console, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
 tee -a /databricks/spark/dbconf/log4j/executor/log4j.properties << EOF
 # appInsights
 log4j.appender.aiAppender=com.microsoft.applicationinsights.log4j.v1_2.ApplicationInsightsAppender
@@ -22,7 +23,8 @@ EOF
 echo "END: Updating Executor log4j properties file"
 
 echo "BEGIN: Updating Driver log4j properties file"
-sed -i 's/log4j.rootCategory=INFO, publicFile/log4j.rootCategory=INFO, publicFile, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/driver/log4j.properties
+sed -i 's/log4j.rootCategory=.*/&, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/driver/log4j.properties
+#sed -i 's/log4j.rootCategory=INFO, publicFile/log4j.rootCategory=INFO, publicFile, aiAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/driver/log4j.properties
 tee -a /databricks/spark/dbconf/log4j/driver/log4j.properties << EOF
 # appInsights
 log4j.appender.aiAppender=com.microsoft.applicationinsights.log4j.v1_2.ApplicationInsightsAppender
