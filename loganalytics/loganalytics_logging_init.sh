@@ -14,7 +14,7 @@ sudo echo LOG_ANALYTICS_WORKSPACE_ID=$LOG_ANALYTICS_WORKSPACE_ID >> /etc/environ
 sudo echo LOG_ANALYTICS_WORKSPACE_KEY=$LOG_ANALYTICS_WORKSPACE_KEY >> /etc/environment
 
 echo "BEGIN: Updating Executor log4j properties file with Log analytics appender"
-sed -i 's/log4j.rootCategory=.*/&, logAnalyticsAppender/g' $conf_file /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
+sed -i 's/log4j.rootCategory=.*/&, logAnalyticsAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
 tee -a /databricks/spark/dbconf/log4j/executor/log4j.properties << EOF
 # logAnalytics
 log4j.appender.logAnalyticsAppender=com.microsoft.pnp.logging.loganalytics.LogAnalyticsAppender
