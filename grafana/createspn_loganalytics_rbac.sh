@@ -13,5 +13,4 @@ az ad sp create-for-rbac \
         --name $APPNAME  \
         --role "Log Analytics Reader"  \
         --scopes /subscriptions/$subscriptionId/resourceGroups/$LOG_ANALYTICS_RESOURCE_GROUP/providers/Microsoft.OperationalInsights/workspaces/$LOG_ANALYTICS_WORKSPACE
-
-
+echo SubscriptionID: $subscriptionId
