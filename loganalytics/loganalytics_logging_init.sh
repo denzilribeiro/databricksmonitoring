@@ -20,6 +20,12 @@ if [ $workspace_key -eq 0 ] ; then
 sudo echo LOG_ANALYTICS_WORKSPACE_KEY=$LOG_ANALYTICS_WORKSPACE_KEY >> /etc/environment
 fi
 
+sudo echo SOURCE_CLUSTER_ID=$DB_CLUSTER_ID >> /etc/environment
+sudo echo IS_SPARK_DRIVER_NODE=$DB_IS_DRIVER >> /etc/environment
+
+echo $IS_DRIVER_NODE
+echo $SOURCE_CLUSTER_ID
+
 echo "BEGIN: Updating Executor log4j properties file with Log analytics appender"
 sed -i 's/log4j.rootCategory=.*/&, logAnalyticsAppender/g' /home/ubuntu/databricks/spark/dbconf/log4j/executor/log4j.properties
 tee -a /databricks/spark/dbconf/log4j/executor/log4j.properties << EOF
