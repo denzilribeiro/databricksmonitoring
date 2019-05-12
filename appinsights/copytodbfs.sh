@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Replace Variables
+APPINSIGHTS_INSTRUMENTATION_KEY="Enter App Insights Instrumentation Key"
+STAGE_DIR="dbfs:/databricks/appinsights"
+
+#Replace valies in init script
+STAGE_DIR_INTERNAL="$(sed 's/dbfs:\//\/dbfs\//g' <<<$STAGE_DIR)"
+sed -i 's/STAGE_DIR=.*/STAGE_DIR="${STAGE_DIR_INTERNAL}"/g' ./appinsights.sh
+sed -i 's/^APPINSIGHTS_INSTRUMENTATION_KEY=.*/APPINSIGHTS_INSTRUMENTATION_KEY=${APPINSIGHTS_INSTRUMENTATION_KEY}/g' ./appinsights.sh
+
 # Check installation of databricks  cli
 databricks fs ls dbfs:/ >> /dev/null
 dbcliinstall=$?
@@ -8,6 +17,7 @@ if [ $dbcliinstall -ne 0 ]; then
     exit 1;
 fi
 
+#create directory
 echo "Creating DBFS direcrtory"
 dbfs mkdirs dbfs:/databricks/appinsights
 
@@ -21,12 +31,12 @@ dbfs cp applicationinsights-core-2.3.1.jar dbfs:/databricks/appinsights/applicat
 dbfs cp applicationinsights-logging-log4j1_2-2.3.1.jar  dbfs:/databricks/appinsights/applicationinsights-logging-log4j1_2-2.3.1.jar --overwrite
 
 echo "Uploading cluster init script"
-dbfs cp appinsights_logging_init.sh  dbfs:/databricks/appinsights/appinsights_logging_init.sh --overwrite
+dbfs cp appinsights.sh  dbfs:/databricks/appinsights/appinsights_logging.sh --overwrite
 
 echo "Deleting jars downloaded locally"
 rm -rf applicationinsights-logging-log4j1_2-2.3.1.jar
 rm -rf applicationinsights-core-2.3.1.jar
 
-echo "Listing DBFS directory"
+echo "Listing DBFS directory for $STAGE_DIR"
 dbfs ls dbfs:/databricks/appinsights
 
