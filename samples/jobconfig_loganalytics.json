@@ -1,0 +1,33 @@
+
+{
+  "run_name": "LogAnalytics_SampleNotebookJob",
+  "new_cluster": {
+    "spark_version": "5.3.x-scala2.11",
+    "driver_node_type_id": "Standard_DS3_v2",
+    "node_type_id": "Standard_DS3_v2",
+    "autoscale" : {
+            "min_workers": 2,
+            "max_workers": 4
+                },
+   "init_scripts": [
+    {
+      "dbfs": {
+        "destination": "dbfs:/databricks/loganalytics/listeners.sh"
+      }
+
+    },
+    {
+      "dbfs": {
+        "destination": "dbfs:/databricks/loganalytics/loganalytics_linuxagent.sh" 
+       }
+
+    }
+   
+  ]
+ },
+   "notebook_task": {
+   "notebook_path": "/Shared/SampleJobNotebook"
+  }
+
+}
+

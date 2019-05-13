@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Replace Variables
-APPINSIGHTS_INSTRUMENTATION_KEY="Enter App Insights Instrumentation Key"
+APPINSIGHTS_INSTRUMENTATION_KEY="ENTER APP INSIGHTS INSTRUMENTATION KEY HERE"
 STAGE_DIR="dbfs:/databricks/appinsights"
 
 #Replace valies in init script
-STAGE_DIR_INTERNAL="$(sed 's/dbfs:\//\/dbfs\//g' <<<$STAGE_DIR)"
-sed -i 's/STAGE_DIR=.*/STAGE_DIR="${STAGE_DIR_INTERNAL}"/g' ./appinsights.sh
-sed -i 's/^APPINSIGHTS_INSTRUMENTATION_KEY=.*/APPINSIGHTS_INSTRUMENTATION_KEY=${APPINSIGHTS_INSTRUMENTATION_KEY}/g' ./appinsights.sh
+STAGE_DIR_INTERNAL=$(echo $STAGE_DIR | cut -d':' -f 2 | sed -r 's/\//\\\//g')
+sed -i "s/^STAGE_DIR=.*/STAGE_DIR=\"\/dbfs$STAGE_DIR_INTERNAL\"/g" ./appinsights.sh
+sed -i "s/^APPINSIGHTS_INSTRUMENTATION_KEY=.*/APPINSIGHTS_INSTRUMENTATION_KEY=\"$APPINSIGHTS_INSTRUMENTATION_KEY\"/g" ./appinsights.sh
 
 # Check installation of databricks  cli
 databricks fs ls dbfs:/ >> /dev/null
@@ -31,7 +31,7 @@ dbfs cp applicationinsights-core-2.3.1.jar dbfs:/databricks/appinsights/applicat
 dbfs cp applicationinsights-logging-log4j1_2-2.3.1.jar  dbfs:/databricks/appinsights/applicationinsights-logging-log4j1_2-2.3.1.jar --overwrite
 
 echo "Uploading cluster init script"
-dbfs cp appinsights.sh  dbfs:/databricks/appinsights/appinsights_logging.sh --overwrite
+dbfs cp appinsights.sh  dbfs:/databricks/appinsights/appinsights.sh --overwrite
 
 echo "Deleting jars downloaded locally"
 rm -rf applicationinsights-logging-log4j1_2-2.3.1.jar
