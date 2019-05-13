@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": 7,
-  "iteration": 1555595586120,
+  "iteration": 1557704715928,
   "links": [],
   "panels": [
     {
@@ -44,7 +44,7 @@
         "rightSide": true,
         "show": true,
         "sort": "avg",
-        "sortDesc": true,
+        "sortDesc": false,
         "total": false,
         "values": true
       },
@@ -73,7 +73,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL \n| where $__timeFilter(TimeGenerated) \n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.cpuTime\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executor:\",sname[1])\n| project TimeGenerated , cpuTime=count_d/1000000 , executor ,name_s\n| summarize ExecutorCpuTime = max(cpuTime)- min(cpuTime) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last   \n",
+            "query": "SparkMetric_CL \n| where $__timeFilter(TimeGenerated) \n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.cpuTime\" \n| project TimeGenerated , cpuTime=count_d/1000000 ,executor=strcat(nodeType_s,\":\",executorId_s),name_s\n| summarize ExecutorCpuTime = max(cpuTime)- min(cpuTime) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last   \n",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -197,14 +197,16 @@
       "id": 26,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -236,7 +238,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.BytesWritten\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.BytesWritten\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -361,14 +363,14 @@
       "id": 56,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -400,7 +402,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.BytesRead\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.BytesRead\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -563,7 +565,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s !contains \"driver\" \n| where name_s contains \"executor\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[1]) \n| extend app=strcat(sname[0])\n| summarize NumExecutors=dcount(executor)  by bin(TimeGenerated,  1m),app\n| order by TimeGenerated asc  nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where nodeType_s == \"executor\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[1]) \n| extend app=strcat(sname[0])\n| summarize NumExecutors=dcount(executor)  by bin(TimeGenerated,  1m),app\n| order by TimeGenerated asc  nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -722,7 +724,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"DAGScheduler.job.activeJobs\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize NumJobs=sum(value_d) by bin(TimeGenerated,1m)\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"DAGScheduler.job.activeJobs\" \n| summarize NumJobs=sum(value_d) by bin(TimeGenerated,1m)\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -795,14 +797,14 @@
       "id": 27,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -834,7 +836,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.memoryBytesSpilled\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.memoryBytesSpilled\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -991,7 +993,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executorid:\",sname[1]) , appname=tostring(sname[0])\n| where name_s contains \"threadpool.activeTasks\" \n//| summarize percentile(value_d,90)  by bin(TimeGenerated, 1m)\n| summarize sum(value_d)  by bin(TimeGenerated, 1m)\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"threadpool.activeTasks\" \n| summarize sum(value_d)  by bin(TimeGenerated, 1m)\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1064,14 +1066,16 @@
       "id": 40,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -1098,7 +1102,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executorid:\",sname[1]) , appname=tostring(sname[0])\n| where name_s contains \"threadpool.activeTasks\" \n//| summarize percentile(value_d,90)  by bin(TimeGenerated, 1m),executor\n| summarize sum(value_d)  by bin(TimeGenerated, 1m),executor\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"threadpool.activeTasks\" \n| summarize sum(value_d)  by bin(TimeGenerated, 1m),strcat(\"executor:\",executorId_s)\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1171,14 +1175,14 @@
       "id": 58,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -1210,7 +1214,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.diskBytesSpilled\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.diskBytesSpilled\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1369,7 +1373,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.jvmGCTime\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , jvmgcTime=count_d , executor ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , runTime=count_d , executor ,name_s\n) on executor, TimeGenerated;\nresults\n| extend JvmcpuUsage=(jvmgcTime/runTime)*100\n| summarize JvmCpuTime = percentile(JvmcpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart  \n",
+            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.jvmGCTime\" \n| project TimeGenerated , jvmgcTime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , runTime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n) on executor, TimeGenerated;\nresults\n| extend JvmcpuUsage=(jvmgcTime/runTime)*100\n| summarize JvmCpuTime = percentile(JvmcpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart  \n",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1477,7 +1481,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.jvmCpuTime\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , jvmCpuTime=value_d/1000000 , executor ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , runTime=count_d , executor ,name_s\n) on executor, TimeGenerated;\nresults\n| extend JvmcpuUsage=(jvmCpuTime/runTime)*100\n| summarize JvmCpuTime = percentile(JvmcpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart  \n",
+            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.jvmCpuTime\" \n| project TimeGenerated , jvmCpuTime=value_d/1000000 , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.RunTime\"\n| project TimeGenerated , runTime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n) on executor, TimeGenerated;\nresults\n| extend JvmcpuUsage=(jvmCpuTime/runTime)*100\n| summarize JvmCpuTime = percentile(JvmcpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart  \n",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1587,7 +1591,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "let results = SparkMetric_CL \n| where $__timeFilter(TimeGenerated) \n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.cpuTime\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , cpuTime=count_d/1000000  ,  executor ,name_s\n| join kind= inner (\n    SparkMetric_CL\n| where $__timeFilter(TimeGenerated) \n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(sname[0],\".\",sname[1])\n| project TimeGenerated , runTime=count_d  ,  executor ,name_s\n) on executor, TimeGenerated;\nresults\n| extend cpuUsage=(cpuTime/runTime)*100\n| summarize ExecutorCpuTime = percentile(cpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last   \n",
+            "query": "let results = SparkMetric_CL \n| where $__timeFilter(TimeGenerated) \n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.cpuTime\" \n| project TimeGenerated , cpuTime=count_d/1000000  ,  executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n| join kind= inner (\n    SparkMetric_CL\n| where $__timeFilter(TimeGenerated) \n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.RunTime\"\n| project TimeGenerated , runTime=count_d  ,  executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n) on executor, TimeGenerated;\nresults\n| extend cpuUsage=(cpuTime/runTime)*100\n| summarize ExecutorCpuTime = percentile(cpuUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last   \n",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1711,14 +1715,16 @@
       "id": 22,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
+        "sort": "avg",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -1750,7 +1756,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.shuffleBytesWritten\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.shuffleBytesWritten\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -1875,14 +1881,14 @@
       "id": 57,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -1914,7 +1920,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.shuffleTotalBytesRead\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.shuffleTotalBytesRead\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2039,7 +2045,7 @@
       "id": 24,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "hideEmpty": true,
         "max": false,
@@ -2047,7 +2053,7 @@
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -2079,7 +2085,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"shuffle-client.usedDirectMemory\"\n//| where  name_s  contains \"shuffle-client\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executor:\",sname[1]),InstanceName=tostring(sname[4])\n| summarize percentile(value_d,90)  by bin(TimeGenerated,  1m),  executor\n| order by TimeGenerated asc  nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"shuffle-client.usedDirectMemory\"\n//| where  name_s  contains \"shuffle-client\"\n| summarize percentile(value_d,90)  by bin(TimeGenerated,  1m),  strcat(\"executor:\",executorId_s)\n| order by TimeGenerated asc  nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2156,7 +2162,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"shuffle-client.usedHeapMemory\"\n//| where  name_s  contains \"shuffle-client\"\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executor:\",sname[1]),InstanceName=tostring(sname[4])\n| summarize percentile(value_d,90)  by bin(TimeGenerated,  1m),  executor\n| order by TimeGenerated asc  nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"shuffle-client.usedHeapMemory\"\n| summarize percentile(value_d,90)  by bin(TimeGenerated,  1m),  strcat(\"executor:\",executorId_s)\n| order by TimeGenerated asc  nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2231,14 +2237,14 @@
       "id": 54,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -2270,7 +2276,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.shuffleRemoteBytesRead\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.shuffleRemoteBytesRead\"\n| summarize ShuffleBytesWritten=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2395,14 +2401,14 @@
       "id": 55,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -2434,7 +2440,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where name_s startswith '$metricnamespace'\n| where  name_s  contains \"executor.shuffleFetchWaitTime\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executorid:\",sname[1])\n| summarize ShuffleFetchWaitTimems=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), executor \n| order by TimeGenerated asc nulls last",
+            "query": "SparkMetric_CL\n| where $__timeFilter()\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.shuffleFetchWaitTime\"\n| summarize ShuffleFetchWaitTimems=max(count_d)- min(count_d)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s) \n| order by TimeGenerated asc nulls last",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2593,7 +2599,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"BlockManager.memory\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executorid:\",sname[1]), InstanceName=tostring(sname[4])\n| summarize sum(value_d) by bin(TimeGenerated,1m), InstanceName\n| render timechart\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"BlockManager.memory\" \n| extend sname=split(name_s, \".\")\n| extend  InstanceName=tostring(sname[4])\n| summarize sum(value_d) by bin(TimeGenerated,1m), InstanceName\n| render timechart\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2629,7 +2635,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "bytes",
           "label": "",
           "logBase": 1,
           "max": null,
@@ -2700,7 +2706,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "let results = SparkMetric_CL \n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.deserializetime\" \n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executor:\",sname[1])\n| project TimeGenerated , desetime=count_d , executor ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executor:\",sname[1])\n| project TimeGenerated , runTime=count_d , executor ,name_s\n) on executor, TimeGenerated;\nresults\n| extend deseUsage=(desetime/runTime)*100\n| summarize deSerializationCpuTime=percentiles(deseUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last ",
+            "query": "let results = SparkMetric_CL \n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.deserializetime\" \n| project TimeGenerated , desetime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.RunTime\"\n| project TimeGenerated , runTime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n) on executor, TimeGenerated;\nresults\n| extend deseUsage=(desetime/runTime)*100\n| summarize deSerializationCpuTime=percentiles(deseUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2808,7 +2814,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"executor.resultserializationtime\" \n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executor:\",sname[1])\n| project TimeGenerated , setime=count_d , executor ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s contains \"executor.RunTime\"\n| extend sname=split(name_s, \".\") \n| extend executor=strcat(\"executor:\",sname[1])\n| project TimeGenerated , runTime=count_d , executor ,name_s\n) on executor, TimeGenerated;\nresults\n| extend serUsage=(setime/runTime)*100\n| summarize SerializationCpuTime=percentile(serUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart ",
+            "query": "let results = SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.resultserializationtime\" \n| project TimeGenerated , setime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n| join kind= inner (\nSparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"executor.RunTime\"\n| project TimeGenerated , runTime=count_d , executor=strcat(\"nodeType_s:\",executorId_s) ,name_s\n) on executor, TimeGenerated;\nresults\n| extend serUsage=(setime/runTime)*100\n| summarize SerializationCpuTime=percentile(serUsage,90) by bin(TimeGenerated, 1m), executor\n| order by TimeGenerated asc nulls last\n| render timechart ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2916,7 +2922,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| where name_s contains \"DAGScheduler.stage\" \n| extend sname=split(name_s, \".\")\n| extend executor=strcat(\"executorid:\",sname[1]), InstanceName=tostring(sname[4])\n| summarize sum(value_d) by bin(TimeGenerated,1m), InstanceName\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where name_s contains \"DAGScheduler.stage\" \n| extend sname=split(name_s, \".\")\n| extend  InstanceName=tostring(sname[4])\n| summarize sum(value_d) by bin(TimeGenerated,1m), InstanceName\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -2989,14 +2995,14 @@
       "id": 20,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -3028,7 +3034,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| where  name_s  contains \"executor.filesystem.file.write_bytes\" \n| summarize FileSystemWriteBytes=percentile(value_d,90)  by bin(TimeGenerated,  1m), executor\n| order by TimeGenerated asc  nulls last ",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.filesystem.file.write_bytes\" \n| summarize FileSystemWriteBytes=percentile(value_d,90)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s)\n| order by TimeGenerated asc  nulls last ",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -3153,14 +3159,14 @@
       "id": 23,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": false,
         "max": false,
         "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -3192,7 +3198,7 @@
             "yaxis": ""
           },
           "azureLogAnalytics": {
-            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where name_s startswith '$metricnamespace'\n| extend sname=split(name_s, \".\")\n| extend executor=strcat(sname[0],\".\",sname[1])\n| where  name_s  contains \"executor.filesystem.file.read_bytes\" \n| summarize FileSystemReadBytes=percentile(value_d,90)  by bin(TimeGenerated,  1m), executor\n| order by TimeGenerated asc  nulls last \n| render timechart",
+            "query": "SparkMetric_CL\n| where $__timeFilter(TimeGenerated)\n| where clusterName_s == '$clusterName'\n| where  name_s  contains \"executor.filesystem.file.read_bytes\" \n| summarize FileSystemReadBytes=percentile(value_d,90)  by bin(TimeGenerated,  1m), strcat(\"executor:\",executorId_s)\n| order by TimeGenerated asc  nulls last \n| render timechart",
             "resultFormat": "time_series",
             "workspace": "20d7c480-e3ae-4151-b690-ead7ff1fd89c"
           },
@@ -3311,18 +3317,18 @@
       {
         "allValue": null,
         "current": {
-          "text": "0417-152502-guru720",
-          "value": "0417-152502-guru720"
+          "text": "job-50-run-1",
+          "value": "job-50-run-1"
         },
         "datasource": "Azure Monitor",
-        "definition": "SparkMetric_CL | distinct name_s | project clusterID= tostring(split(name_s,\".\")[0]) | distinct clusterID",
+        "definition": "SparkMetric_CL | distinct clusterName_s | project clusterName= clusterName_s",
         "hide": 0,
         "includeAll": false,
-        "label": "Metrics Namespace",
+        "label": "Cluster Name",
         "multi": false,
-        "name": "metricnamespace",
+        "name": "clusterName",
         "options": [],
-        "query": "SparkMetric_CL | distinct name_s | project clusterID= tostring(split(name_s,\".\")[0]) | distinct clusterID",
+        "query": "SparkMetric_CL | distinct clusterName_s | project clusterName= clusterName_s",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -3336,8 +3342,8 @@
     ]
   },
   "time": {
-    "from": "2019-04-17T15:47:57.503Z",
-    "to": "2019-04-17T16:31:50.516Z"
+    "from": "2019-05-13T00:35:56.905Z",
+    "to": "2019-05-13T00:45:30.962Z"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -3367,5 +3373,5 @@
   "timezone": "",
   "title": "Spark Metrics",
   "uid": "SP3yfcBmz1",
-  "version": 15
+  "version": 20
 }
